@@ -143,6 +143,15 @@
   footer a{ color:var(--text-2); text-decoration:none; font-weight:500; }
   footer a:hover{ color:var(--ink); text-decoration:underline; }
   footer .dot{ opacity:.5; }
+  .counter{
+    display:inline-flex; align-items:center; gap:7px;
+    margin-top:18px; padding:6px 14px;
+    border:1px solid var(--border); border-radius:999px;
+    background:var(--surface-2);
+    font-size:12px; color:var(--muted); font-variant-numeric:tabular-nums;
+  }
+  .counter svg{ width:13px; height:13px; opacity:.7; }
+  .counter strong{ color:var(--text-2); font-weight:600; }
 </style>
 </head>
 <body>
@@ -220,7 +229,34 @@
     <span class="dot">·</span>
     <span>Progetti indipendenti, dati pubblici</span>
   </div>
+  <div class="counter">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M2 12s3.5-7 10-7 10 7 10 7-3.5 7-10 7-10-7-10-7z"/><circle cx="12" cy="12" r="3"/></svg>
+    <span><strong id="visit-count">···</strong> visite</span>
+  </div>
 </footer>
+
+<script>
+(function(){
+  var el = document.getElementById('visit-count');
+  fetch('https://abacus.jasoncameron.dev/hit/lucavarlani-portale/visite')
+    .then(function(r){ return r.json(); })
+    .then(function(data){
+      var target = data.value;
+      var start = Math.max(0, target - 24);
+      var t0 = performance.now();
+      var dur = 700;
+      function step(t){
+        var p = Math.min(1, (t - t0) / dur);
+        var eased = 1 - Math.pow(1 - p, 3);
+        var val = Math.round(start + (target - start) * eased);
+        el.textContent = val.toLocaleString('it-IT');
+        if(p < 1) requestAnimationFrame(step);
+      }
+      requestAnimationFrame(step);
+    })
+    .catch(function(){ el.textContent = '—'; });
+})();
+</script>
 
 </body>
 </html>
