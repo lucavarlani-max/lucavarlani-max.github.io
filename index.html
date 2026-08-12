@@ -3,82 +3,224 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<meta name="description" content="Portale dei progetti di Luca Varlani: mappe e dashboard su meteo, sismicità, climatologia ed eclissi in Toscana.">
-<title>Luca Varlani — Progetti</title>
+<meta name="description" content="Osservatorio digitale di Luca Varlani: mappe interattive e dashboard su meteo, sismicità, climatologia, astronomia e glaciologia in Italia.">
+<meta property="og:title" content="Luca Varlani — Osservatorio">
+<meta property="og:description" content="Mappe interattive e dashboard su meteo, sismicità, climatologia, astronomia e glaciologia in Italia.">
+<meta property="og:type" content="website">
+<title>Luca Varlani — Osservatorio</title>
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Ccircle cx='50' cy='50' r='46' fill='%231D3557'/%3E%3Cpath d='M20 58 L38 38 L52 50 L80 24' stroke='%23E8A33D' stroke-width='7' fill='none' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,500;9..144,600&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
 <style>
   :root{
-    --blue:#1D3557; --bg:#F7F5F0; --white:#fff; --border:#E8E6E0;
-    --text:#1a1a1a; --muted:#666; --accent:#E67E22;
+    --bg:#F6F4EE; --bg-grad-a:#F6F4EE; --bg-grad-b:#EFEBE0;
+    --surface:#FFFFFF; --surface-2:#FBFAF6;
+    --border:#E4E0D4; --border-soft:#ECE8DC;
+    --text:#1B1C22; --text-2:#4B4E58; --muted:#7A7D87;
+    --ink:#1D3557; --ink-soft:#2E4A76;
+    --accent:#C9622A; --accent-soft:#F1DFCB;
+    --shadow:0 1px 2px rgba(20,20,25,.04), 0 12px 28px -12px rgba(20,20,25,.14);
+    --shadow-hover:0 4px 10px rgba(20,20,25,.06), 0 24px 48px -16px rgba(20,20,25,.22);
+
+    --c-meteo:#3168AC;      --c-meteo-bg:#E4EDF7;
+    --c-astro:#6E4FA3;      --c-astro-bg:#EBE5F5;
+    --c-geo:#B24A3C;        --c-geo-bg:#F5E2DE;
+    --c-explore:#1E8C7A;    --c-explore-bg:#DFF0EC;
+    --c-glacio:#1F7A9E;     --c-glacio-bg:#DEEEF4;
   }
   @media (prefers-color-scheme: dark){
-    :root{ --bg:#15181d; --white:#1c2028; --border:#2a2f3a; --text:#eceef1; --muted:#9aa1ac; }
+    :root{
+      --bg:#12141A; --bg-grad-a:#12141A; --bg-grad-b:#181B23;
+      --surface:#1B1E27; --surface-2:#1F232D;
+      --border:#2C3140; --border-soft:#252935;
+      --text:#EDEEF2; --text-2:#B7BAC5; --muted:#828693;
+      --ink:#9FC1EA; --ink-soft:#7FAEDF;
+      --accent:#E8974F; --accent-soft:#3A2B1D;
+      --shadow:0 1px 2px rgba(0,0,0,.3), 0 12px 28px -12px rgba(0,0,0,.5);
+      --shadow-hover:0 4px 10px rgba(0,0,0,.35), 0 24px 48px -16px rgba(0,0,0,.65);
+
+      --c-meteo:#7CAAE0;   --c-meteo-bg:#1E2A3D;
+      --c-astro:#B7A0E0;   --c-astro-bg:#2A2438;
+      --c-geo:#E09A8D;     --c-geo-bg:#332320;
+      --c-explore:#6FCBB8; --c-explore-bg:#1B322C;
+      --c-glacio:#7EC4DD;  --c-glacio-bg:#1B2E36;
+    }
   }
   *{margin:0;padding:0;box-sizing:border-box;}
+  html{scroll-behavior:smooth;}
   body{
-    font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;
-    background:var(--bg); color:var(--text);
-    min-height:100vh; display:flex; flex-direction:column; align-items:center;
-    padding:56px 20px 40px;
+    font-family:'Inter',-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;
+    background:
+      radial-gradient(1200px 480px at 12% -10%, var(--bg-grad-b), transparent 60%),
+      radial-gradient(1000px 420px at 100% 0%, var(--bg-grad-b), transparent 55%),
+      var(--bg);
+    color:var(--text);
+    min-height:100vh;
+    -webkit-font-smoothing:antialiased;
   }
-  header{ text-align:center; max-width:640px; margin-bottom:44px; }
-  header h1{ font-size:28px; font-weight:700; color:var(--blue); letter-spacing:-0.01em; }
-  @media (prefers-color-scheme: dark){ header h1{ color:#8fb3e0; } }
-  header p{ margin-top:10px; font-size:15px; color:var(--muted); line-height:1.5; }
-  main{ width:100%; max-width:760px; display:grid; gap:16px; grid-template-columns:1fr 1fr; }
-  @media (max-width:600px){ main{ grid-template-columns:1fr; } }
+  .wrap{ max-width:1040px; margin:0 auto; padding:0 24px; }
+
+  /* ---------- Header ---------- */
+  header{ padding:76px 24px 56px; text-align:center; }
+  .eyebrow{
+    display:inline-flex; align-items:center; gap:8px;
+    font-size:12px; font-weight:600; letter-spacing:.14em; text-transform:uppercase;
+    color:var(--accent); margin-bottom:22px;
+  }
+  .eyebrow::before,.eyebrow::after{ content:""; width:26px; height:1px; background:currentColor; opacity:.55; }
+  header h1{
+    font-family:'Fraunces',serif; font-weight:600; font-optical-sizing:auto;
+    font-size:clamp(34px,5vw,54px); line-height:1.08; letter-spacing:-0.015em;
+    color:var(--text); max-width:780px; margin:0 auto;
+  }
+  header h1 em{ font-style:italic; color:var(--ink); }
+  header p{
+    margin:20px auto 0; max-width:560px; font-size:16.5px; line-height:1.6;
+    color:var(--text-2);
+  }
+  .stats{
+    display:flex; justify-content:center; gap:36px; margin-top:34px; flex-wrap:wrap;
+  }
+  .stats div{ text-align:center; }
+  .stats strong{ display:block; font-family:'Fraunces',serif; font-size:26px; font-weight:600; color:var(--ink); }
+  .stats span{ font-size:12px; color:var(--muted); text-transform:uppercase; letter-spacing:.06em; }
+
+  /* ---------- Grid ---------- */
+  main{ padding:8px 24px 40px; }
+  .grid{
+    max-width:1040px; margin:0 auto;
+    display:grid; grid-template-columns:repeat(3,1fr); gap:20px;
+  }
+  @media (max-width:860px){ .grid{ grid-template-columns:repeat(2,1fr); } }
+  @media (max-width:600px){ .grid{ grid-template-columns:1fr; } }
+
   a.card{
-    display:flex; flex-direction:column; gap:6px;
-    background:var(--white); border:1px solid var(--border); border-radius:12px;
-    padding:20px 22px; text-decoration:none; color:inherit;
-    transition:transform .15s ease, box-shadow .15s ease, border-color .15s ease;
+    position:relative; display:flex; flex-direction:column; gap:14px;
+    background:var(--surface); border:1px solid var(--border); border-radius:16px;
+    padding:26px 24px 22px; text-decoration:none; color:inherit;
+    box-shadow:var(--shadow);
+    transition:transform .2s cubic-bezier(.2,.8,.2,1), box-shadow .2s ease, border-color .2s ease;
   }
-  a.card:hover{ transform:translateY(-2px); box-shadow:0 6px 20px rgba(0,0,0,.08); border-color:var(--accent); }
-  .card .tag{ font-size:11px; font-weight:700; text-transform:uppercase; letter-spacing:.05em; color:var(--accent); }
-  .card h2{ font-size:17px; font-weight:600; }
-  .card p{ font-size:13.5px; color:var(--muted); line-height:1.4; }
-  footer{ margin-top:48px; font-size:12.5px; color:var(--muted); text-align:center; }
-  footer a{ color:inherit; }
+  a.card:hover, a.card:focus-visible{
+    transform:translateY(-4px);
+    box-shadow:var(--shadow-hover);
+    border-color:var(--card-color, var(--accent));
+    outline:none;
+  }
+  .icon-chip{
+    width:44px; height:44px; border-radius:12px;
+    display:flex; align-items:center; justify-content:center;
+    background:var(--card-bg); color:var(--card-color);
+  }
+  .icon-chip svg{ width:22px; height:22px; }
+  .card .tag{
+    font-size:11px; font-weight:700; text-transform:uppercase; letter-spacing:.08em;
+    color:var(--card-color);
+  }
+  .card h2{
+    font-family:'Fraunces',serif; font-weight:600; font-size:19.5px; letter-spacing:-.005em;
+    color:var(--text);
+  }
+  .card p{ font-size:13.8px; color:var(--text-2); line-height:1.55; flex:1; }
+  .card .go{
+    display:flex; align-items:center; gap:6px;
+    font-size:12.5px; font-weight:600; color:var(--card-color);
+    margin-top:2px;
+  }
+  .card .go svg{ width:13px; height:13px; transition:transform .2s ease; }
+  a.card:hover .go svg{ transform:translateX(3px); }
+
+  /* ---------- Footer ---------- */
+  footer{
+    margin-top:24px; padding:36px 24px 56px; text-align:center;
+    border-top:1px solid var(--border-soft);
+  }
+  footer .row{
+    display:flex; align-items:center; justify-content:center; gap:18px; flex-wrap:wrap;
+    font-size:13px; color:var(--muted);
+  }
+  footer a{ color:var(--text-2); text-decoration:none; font-weight:500; }
+  footer a:hover{ color:var(--ink); text-decoration:underline; }
+  footer .dot{ opacity:.5; }
 </style>
 </head>
 <body>
+
 <header>
-  <h1>Progetti di Luca Varlani</h1>
-  <p>Mappe interattive e dashboard su meteo, sismicità, climatologia ed eclissi in Toscana.</p>
+  <div class="wrap">
+    <div class="eyebrow">Osservatorio digitale</div>
+    <h1>Mappe e dati per leggere <em>il territorio</em></h1>
+    <p>Una raccolta di progetti indipendenti su meteo, sismicità, astronomia e glaciologia, con un'attenzione particolare alla Toscana.</p>
+    <div class="stats">
+      <div><strong>6</strong><span>Progetti</span></div>
+      <div><strong>5</strong><span>Temi</span></div>
+      <div><strong>2026</strong><span>Aggiornati</span></div>
+    </div>
+  </div>
 </header>
+
 <main>
-  <a class="card" href="https://lucavarlani-max.github.io/toscana-meteo/">
-    <span class="tag">Meteo</span>
-    <h2>Toscana Meteo</h2>
-    <p>Rielaborazioni dei dati delle stazioni meteo del CFR Toscana.</p>
-  </a>
-  <a class="card" href="https://lucavarlani-max.github.io/climatologia-mugellana/">
-    <span class="tag">Meteo</span>
-    <h2>Climatologia Mugellana</h2>
-    <p>Dashboard della stazione Netatmo personale nel Mugello.</p>
-  </a>
-  <a class="card" href="https://lucavarlani-max.github.io/eclipse-toscana/">
-    <span class="tag">Astronomia</span>
-    <h2>Eclissi 12 agosto 2026</h2>
-    <p>Quanto resta visibile dell'eclissi solare in ogni punto della Toscana, orizzonte reale da DEM.</p>
-  </a>
-  <a class="card" href="https://lucavarlani-max.github.io/toscana-sismica/">
-    <span class="tag">Geologia</span>
-    <h2>Sismicità della Toscana</h2>
-    <p>611 terremoti storici dal 1005 al 2020, dati CPTI15 INGV.</p>
-  </a>
-  <a class="card" href="https://lucavarlani-max.github.io/webcam-panomax/">
-    <span class="tag">Esplorazione</span>
-    <h2>Webcam Panomax</h2>
-    <p>Esploratore interattivo delle webcam panoramiche Panomax.</p>
-  </a>
-  <a class="card" href="https://lucavarlani-max.github.io/ghiacciai-italia/">
-    <span class="tag">Glaciologia</span>
-    <h2>Il fronte del ghiaccio</h2>
-    <p>Mappa esplorabile dei ghiacciai italiani, dati Catasto CGI e condizioni live.</p>
-  </a>
+  <div class="grid">
+
+    <a class="card" style="--card-color:var(--c-meteo);--card-bg:var(--c-meteo-bg)" href="https://lucavarlani-max.github.io/toscana-meteo/">
+      <div class="icon-chip"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M17.5 19a4.5 4.5 0 0 0 0-9 6 6 0 0 0-11.4-1.5A4.5 4.5 0 0 0 6.5 19h11z"/></svg></div>
+      <span class="tag">Meteo</span>
+      <h2>Toscana Meteo</h2>
+      <p>Rielaborazioni dei dati delle stazioni meteo del CFR Toscana.</p>
+      <span class="go">Apri il sito <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14M13 6l6 6-6 6"/></svg></span>
+    </a>
+
+    <a class="card" style="--card-color:var(--c-meteo);--card-bg:var(--c-meteo-bg)" href="https://lucavarlani-max.github.io/climatologia-mugellana/">
+      <div class="icon-chip"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M10 13.5V4a2 2 0 1 1 4 0v9.5a4 4 0 1 1-4 0z"/><path d="M12 7v6.5"/></svg></div>
+      <span class="tag">Meteo</span>
+      <h2>Climatologia Mugellana</h2>
+      <p>Dashboard della stazione Netatmo personale nel Mugello.</p>
+      <span class="go">Apri il sito <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14M13 6l6 6-6 6"/></svg></span>
+    </a>
+
+    <a class="card" style="--card-color:var(--c-astro);--card-bg:var(--c-astro-bg)" href="https://lucavarlani-max.github.io/eclipse-toscana/">
+      <div class="icon-chip"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="10" cy="12" r="7"/><path d="M13.5 6a7 7 0 0 1 0 12"/></svg></div>
+      <span class="tag">Astronomia</span>
+      <h2>Eclissi 12 agosto 2026</h2>
+      <p>Quanto resta visibile dell'eclissi solare in ogni punto della Toscana, con orizzonte reale calcolato da DEM.</p>
+      <span class="go">Apri il sito <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14M13 6l6 6-6 6"/></svg></span>
+    </a>
+
+    <a class="card" style="--card-color:var(--c-geo);--card-bg:var(--c-geo-bg)" href="https://lucavarlani-max.github.io/toscana-sismica/">
+      <div class="icon-chip"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M2 14h4l2-5 3 9 2.5-6 1.5 3h7"/></svg></div>
+      <span class="tag">Geologia</span>
+      <h2>Sismicità della Toscana</h2>
+      <p>611 terremoti storici dal 1005 al 2020, dati CPTI15 INGV.</p>
+      <span class="go">Apri il sito <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14M13 6l6 6-6 6"/></svg></span>
+    </a>
+
+    <a class="card" style="--card-color:var(--c-explore);--card-bg:var(--c-explore-bg)" href="https://lucavarlani-max.github.io/webcam-panomax/">
+      <div class="icon-chip"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M3 8a2 2 0 0 1 2-2h2l1.5-2h7L17 6h2a2 2 0 0 1 2 2v9a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8z"/><circle cx="12" cy="13" r="3.5"/></svg></div>
+      <span class="tag">Esplorazione</span>
+      <h2>Webcam Panomax</h2>
+      <p>Esploratore interattivo delle webcam panoramiche Panomax nel mondo.</p>
+      <span class="go">Apri il sito <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14M13 6l6 6-6 6"/></svg></span>
+    </a>
+
+    <a class="card" style="--card-color:var(--c-glacio);--card-bg:var(--c-glacio-bg)" href="https://lucavarlani-max.github.io/ghiacciai-italia/">
+      <div class="icon-chip"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M3 18l5-9 4 6 2-3 7 6H3z"/></svg></div>
+      <span class="tag">Glaciologia</span>
+      <h2>Il fronte del ghiaccio</h2>
+      <p>Mappa esplorabile dei ghiacciai italiani, dati Catasto CGI e condizioni live.</p>
+      <span class="go">Apri il sito <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14M13 6l6 6-6 6"/></svg></span>
+    </a>
+
+  </div>
 </main>
+
 <footer>
-  <a href="https://github.com/lucavarlani-max">github.com/lucavarlani-max</a>
+  <div class="row">
+    <a href="https://github.com/lucavarlani-max">github.com/lucavarlani-max</a>
+    <span class="dot">·</span>
+    <span>Progetti indipendenti, dati pubblici</span>
+  </div>
 </footer>
+
 </body>
 </html>
