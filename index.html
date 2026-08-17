@@ -153,12 +153,12 @@
   .counter svg{ width:13px; height:13px; opacity:.7; }
   .counter strong{ color:var(--text-2); font-weight:600; }
 
-  /* --- sezione selezionata / hover: diventa chiara --- */
+  /* --- sezione selezionata: diventa chiara --- */
   .card{transition:background .18s,color .18s,border-color .18s,box-shadow .18s,transform .18s}
-  .card:hover,.card:focus-visible,.card.selected{background:var(--card-bg);border-color:var(--card-color);box-shadow:var(--shadow-hover);color:#1B1C22}
-  .card:hover h2,.card:focus-visible h2,.card.selected h2{color:#1B1C22}
-  .card:hover p,.card:focus-visible p,.card.selected p{color:#4B4E58}
-  .card:hover .tag,.card:focus-visible .tag,.card.selected .tag,.card:hover .go,.card:focus-visible .go,.card.selected .go,.card:hover .icon-chip,.card.selected .icon-chip{color:var(--card-color)}
+  .card.selected,.card:focus-visible{background:#FDFBF7;border-color:var(--card-color);box-shadow:var(--shadow-hover);color:#1B1C22}
+  .card.selected h2,.card:focus-visible h2{color:#1B1C22}
+  .card.selected p,.card:focus-visible p{color:#4B4E58}
+  .card.selected .tag,.card:focus-visible .tag,.card.selected .go,.card:focus-visible .go,.card.selected .icon-chip,.card:focus-visible .icon-chip{color:var(--card-color)}
   .card.selected{outline:2px solid var(--card-color);outline-offset:3px}
 </style>
 </head>
