@@ -152,6 +152,14 @@
   }
   .counter svg{ width:13px; height:13px; opacity:.7; }
   .counter strong{ color:var(--text-2); font-weight:600; }
+
+  /* --- sezione selezionata / hover: diventa chiara --- */
+  .card{transition:background .18s,color .18s,border-color .18s,box-shadow .18s,transform .18s}
+  .card:hover,.card:focus-visible,.card.selected{background:var(--card-bg);border-color:var(--card-color);box-shadow:var(--shadow-hover);color:#1B1C22}
+  .card:hover h2,.card:focus-visible h2,.card.selected h2{color:#1B1C22}
+  .card:hover p,.card:focus-visible p,.card.selected p{color:#4B4E58}
+  .card:hover .tag,.card:focus-visible .tag,.card.selected .tag,.card:hover .go,.card:focus-visible .go,.card.selected .go,.card:hover .icon-chip,.card.selected .icon-chip{color:var(--card-color)}
+  .card.selected{outline:2px solid var(--card-color);outline-offset:3px}
 </style>
 </head>
 <body>
@@ -171,6 +179,13 @@
 
 <main>
   <div class="grid">
+      <a class="card" href="prezzi-carburanti/2026-08-10/" style="--card-color:var(--accent);--card-bg:var(--accent-soft)">
+        <div class="icon-chip"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2.5S6 9 6 14a6 6 0 0 0 12 0c0-5-6-11.5-6-11.5z"/></svg></div>
+        <span class="tag">Energia</span>
+        <h2>Prezzi carburanti in Europa</h2>
+        <p>Benzina e diesel nei 27 Paesi UE, aggiornati ogni settimana dal bollettino della Commissione europea.</p>
+        <span class="go">Apri il sito <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14M13 6l6 6-6 6"/></svg></span>
+      </a>
 
     <a class="card" style="--card-color:var(--c-meteo);--card-bg:var(--c-meteo-bg)" href="https://lucavarlani-max.github.io/toscana-meteo/">
       <div class="icon-chip"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M17.5 19a4.5 4.5 0 0 0 0-9 6 6 0 0 0-11.4-1.5A4.5 4.5 0 0 0 6.5 19h11z"/></svg></div>
@@ -282,5 +297,15 @@
 })();
 </script>
 
+
+<script>
+(function(){
+  var cards=[].slice.call(document.querySelectorAll(".grid .card"));
+  var K="osservatorio-sel";
+  try{var s=localStorage.getItem(K);if(s)cards.forEach(function(c){if(c.getAttribute("href")===s)c.classList.add("selected");});}catch(e){}
+  cards.forEach(function(c){c.addEventListener("click",function(){cards.forEach(function(x){x.classList.remove("selected");});c.classList.add("selected");try{localStorage.setItem(K,c.getAttribute("href"));}catch(e){}});});
+  try{var lbl=[].slice.call(document.querySelectorAll("*")).filter(function(e){return e.children.length===0&&e.textContent.trim().toUpperCase()==="PROGETTI";})[0];if(lbl&&lbl.previousElementSibling)lbl.previousElementSibling.textContent=String(cards.length);}catch(e){}
+})();
+</script>
 </body>
 </html>
