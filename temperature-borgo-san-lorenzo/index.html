@@ -138,6 +138,14 @@
   .dot { fill: var(--series-1-dot); stroke: var(--surface-1); stroke-width: 2; }
   .crosshair { stroke: var(--axis); stroke-width: 1; pointer-events: none; }
   .hit { fill: transparent; }
+  .normal-line-halo { stroke: var(--surface-1); stroke-width: 5; opacity: 0.9; }
+  .normal-line { stroke: var(--text-primary); stroke-width: 2; stroke-dasharray: 6 4; opacity: 0.8; }
+  .normal-label { fill: var(--text-secondary); font-size: 11px; }
+
+  .chart-legend { display: flex; gap: 18px; margin-bottom: 8px; font-size: 12px; color: var(--text-secondary); }
+  .chart-legend .key { display: inline-flex; align-items: center; gap: 6px; }
+  .chart-legend .swatch { width: 18px; height: 0; border-top: 2px solid var(--series-1); }
+  .chart-legend .swatch.normal { border-top: 2px dashed var(--text-primary); opacity: 0.8; }
 
   .tablewrap { display: none; overflow-x: auto; }
   .tablewrap.show { display: block; }
@@ -177,6 +185,10 @@
 
     <div class="stats" id="statsRow"></div>
 
+    <div class="chart-legend">
+      <span class="key"><span class="swatch"></span>Media Tmax per anno</span>
+      <span class="key"><span class="swatch normal"></span>Normale climatica 1991–2020</span>
+    </div>
     <div id="chartHolder"></div>
 
     <div class="tablewrap" id="tableWrap">
@@ -220,6 +232,17 @@
   var yearMin = years[0], yearMax = years[years.length-1];
   var allYears = [];
   for (var y=yearMin; y<=yearMax; y++) allYears.push(y);
+
+  // Climatological normal, WMO standard 1991-2020 (station data missing 1990-99,
+  // so this normal is computed only on the years actually available in that window).
+  var NORMAL_START = 1991, NORMAL_END = 2020;
+  var monthNormalSum = [0,0,0,0,0,0,0,0,0,0,0,0], monthNormalCount = [0,0,0,0,0,0,0,0,0,0,0,0];
+  for (var mi1=0; mi1<12; mi1++){
+    for (var ny=NORMAL_START; ny<=NORMAL_END; ny++){
+      if (data[mi1][ny]){ monthNormalSum[mi1] += data[mi1][ny].avg; monthNormalCount[mi1]++; }
+    }
+  }
+  var monthNormal = monthNormalSum.map(function(s,i){ return monthNormalCount[i] ? s / monthNormalCount[i] : null; });
 
   function daysInMonth(y,m){ return new Date(y, m, 0).getDate(); }
 
@@ -477,6 +500,27 @@
     axisB.setAttribute("y1",H-padB); axisB.setAttribute("y2",H-padB);
     axisB.setAttribute("class","axisline");
     svg.appendChild(axisB);
+
+    var normalVal = monthNormal[m-1];
+    if (normalVal !== null){
+      var ny = yFor(normalVal);
+      var halo = document.createElementNS(svgNS,"line");
+      halo.setAttribute("x1",padL); halo.setAttribute("x2",W-padR);
+      halo.setAttribute("y1",ny); halo.setAttribute("y2",ny);
+      halo.setAttribute("class","normal-line-halo");
+      svg.appendChild(halo);
+      var nline = document.createElementNS(svgNS,"line");
+      nline.setAttribute("x1",padL); nline.setAttribute("x2",W-padR);
+      nline.setAttribute("y1",ny); nline.setAttribute("y2",ny);
+      nline.setAttribute("class","normal-line");
+      svg.appendChild(nline);
+      var nlabel = document.createElementNS(svgNS,"text");
+      nlabel.setAttribute("x", W-padR-4); nlabel.setAttribute("y", ny - 6);
+      nlabel.setAttribute("text-anchor","end");
+      nlabel.setAttribute("class","normal-label");
+      nlabel.textContent = "1991–2020: " + normalVal.toFixed(1) + " °C";
+      svg.appendChild(nlabel);
+    }
 
     var segments = [];
     var cur = [];
