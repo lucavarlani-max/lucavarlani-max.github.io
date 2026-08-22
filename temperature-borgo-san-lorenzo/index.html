@@ -159,7 +159,7 @@
       <span id="legendMin">–</span>
       <div class="legend-bar" id="legendBar"></div>
       <span id="legendMax">–</span>
-      <span style="margin-left:4px;">°C — freddo (blu) / media (neutro, <span id="legendMid">–</span>°C) / caldo (rosso)</span>
+      <span style="margin-left:4px;">°C di scostamento dalla media storica <em>di quel mese</em> — blu = più freddo del solito, rosso = più caldo del solito</span>
     </div>
 
     <div class="heatwrap">
@@ -197,18 +197,25 @@
   var data = [];
   for (var i=0;i<12;i++) data.push({});
   var yearsSet = {};
-  var minVal = Infinity, maxVal = -Infinity;
-  var sumVal = 0, countVal = 0;
+  var monthSum = [0,0,0,0,0,0,0,0,0,0,0,0], monthCount = [0,0,0,0,0,0,0,0,0,0,0,0];
   raw.split("\n").forEach(function(line){
     var p = line.split(",");
     var y = +p[0], m = +p[1], avg = +p[2], days = +p[3];
     data[m-1][y] = {avg: avg, days: days};
     yearsSet[y] = true;
-    if (avg < minVal) minVal = avg;
-    if (avg > maxVal) maxVal = avg;
-    sumVal += avg; countVal++;
+    monthSum[m-1] += avg; monthCount[m-1]++;
   });
-  var meanVal = sumVal / countVal;
+  // Neutral point per row is that month's own historical average, not the
+  // year-round mean — otherwise every January reads "cold" and every July
+  // "hot" regardless of whether that particular year was normal for the month.
+  var monthMean = monthSum.map(function(s,i){ return s / monthCount[i]; });
+  var maxAbsAnomaly = 0;
+  for (var mi0=0; mi0<12; mi0++){
+    Object.keys(data[mi0]).forEach(function(y){
+      var a = Math.abs(data[mi0][y].avg - monthMean[mi0]);
+      if (a > maxAbsAnomaly) maxAbsAnomaly = a;
+    });
+  }
   var years = Object.keys(yearsSet).map(Number).sort(function(a,b){return a-b;});
   var yearMin = years[0], yearMax = years[years.length-1];
   var allYears = [];
@@ -270,15 +277,10 @@
     dark:  "linear-gradient(to right, #3987e5, #383835 50%, #e66767)"
   };
 
-  function divergingColor(value, dark, meanVal, minVal, maxVal){
+  function anomalyColor(anomaly, dark){
     var p = dark ? poles.dark : poles.light;
-    if (value <= meanVal){
-      var coldness = (meanVal - minVal) > 0 ? (meanVal - value) / (meanVal - minVal) : 0;
-      return mixRgb(p.neutral, p.cold, coldness);
-    } else {
-      var hotness = (maxVal - meanVal) > 0 ? (value - meanVal) / (maxVal - meanVal) : 0;
-      return mixRgb(p.neutral, p.hot, hotness);
-    }
+    var t = maxAbsAnomaly > 0 ? Math.abs(anomaly) / maxAbsAnomaly : 0;
+    return mixRgb(p.neutral, anomaly < 0 ? p.cold : p.hot, t);
   }
   function isDark(){
     var root = document.documentElement;
@@ -287,9 +289,8 @@
     return window.matchMedia && window.matchMedia("(prefers-color-scheme: dark)").matches;
   }
 
-  document.getElementById("legendMin").textContent = minVal.toFixed(0);
-  document.getElementById("legendMax").textContent = maxVal.toFixed(0);
-  document.getElementById("legendMid").textContent = meanVal.toFixed(0);
+  document.getElementById("legendMin").textContent = "−" + maxAbsAnomaly.toFixed(1);
+  document.getElementById("legendMax").textContent = "+" + maxAbsAnomaly.toFixed(1);
 
   var grid = document.getElementById("heatgrid");
   var nCols = allYears.length;
@@ -342,7 +343,7 @@
     for (var mi=0; mi<12; mi++){
       cellRefs[mi].forEach(function(c){
         if (!c.rec) return;
-        c.el.style.background = divergingColor(c.rec.avg, dark, meanVal, minVal, maxVal);
+        c.el.style.background = anomalyColor(c.rec.avg - monthMean[mi], dark);
       });
     }
     legendBar.style.background = dark ? legendGrad.dark : legendGrad.light;
@@ -357,12 +358,15 @@
   function attachCellEvents(cell, month, year, rec){
     function show(e){
       var dim = daysInMonth(year, month);
+      var anomaly = rec.avg - monthMean[month-1];
       tooltip.innerHTML = "";
       var v = document.createElement("div"); v.className="val"; v.textContent = rec.avg.toFixed(1) + " °C";
       var l = document.createElement("div"); l.textContent = monthNames[month-1] + " " + year;
+      var a = document.createElement("div"); a.style.opacity="0.9"; a.style.fontSize="11px";
+      a.textContent = (anomaly >= 0 ? "+" : "−") + Math.abs(anomaly).toFixed(1) + " °C rispetto alla media di " + monthNames[month-1].toLowerCase() + " (" + monthMean[month-1].toFixed(1) + " °C)";
       var c = document.createElement("div"); c.style.opacity="0.75"; c.style.fontSize="11px";
       c.textContent = "media su " + rec.days + "/" + dim + " giorni";
-      tooltip.appendChild(v); tooltip.appendChild(l); tooltip.appendChild(c);
+      tooltip.appendChild(v); tooltip.appendChild(l); tooltip.appendChild(a); tooltip.appendChild(c);
       tooltip.classList.add("show");
       moveTooltip(e);
     }
