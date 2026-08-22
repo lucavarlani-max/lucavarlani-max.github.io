@@ -88,9 +88,8 @@
   }
   button.tablebtn:hover { color: var(--text-primary); border-color: var(--text-secondary); }
 
-  .legend-row { display: flex; align-items: center; gap: 8px; margin-bottom: 10px; font-size: 12px; color: var(--text-muted); }
-  .legend-bar { width: 180px; height: 10px; border-radius: 5px; background: linear-gradient(to right,
-      var(--ramp-100), var(--ramp-200), var(--ramp-300), var(--ramp-400), var(--ramp-500), var(--ramp-600), var(--ramp-700)); }
+  .legend-row { display: flex; align-items: center; gap: 8px; margin-bottom: 10px; font-size: 12px; color: var(--text-muted); flex-wrap: wrap; }
+  .legend-bar { width: 180px; height: 10px; border-radius: 5px; border: 1px solid var(--border); }
 
   .heatwrap { overflow-x: auto; padding-bottom: 4px; }
   .heatgrid { display: grid; grid-auto-rows: 22px; }
@@ -114,6 +113,7 @@
   .cell:hover, .cell:focus-visible { box-shadow: 0 0 0 2px var(--text-primary) inset; }
   .cell.rowactive { box-shadow: 0 0 0 1px var(--text-secondary) inset; }
   .cell.lowcov { opacity: 0.55; }
+  .cell:not(.empty) { border: 1px solid var(--border); }
 
   .tooltip {
     position: fixed; pointer-events: none; z-index: 1000;
@@ -157,9 +157,9 @@
 
     <div class="legend-row">
       <span id="legendMin">–</span>
-      <div class="legend-bar"></div>
+      <div class="legend-bar" id="legendBar"></div>
       <span id="legendMax">–</span>
-      <span style="margin-left:4px;">°C — media mensile</span>
+      <span style="margin-left:4px;">°C — freddo (blu) / media (neutro, <span id="legendMid">–</span>°C) / caldo (rosso)</span>
     </div>
 
     <div class="heatwrap">
@@ -198,6 +198,7 @@
   for (var i=0;i<12;i++) data.push({});
   var yearsSet = {};
   var minVal = Infinity, maxVal = -Infinity;
+  var sumVal = 0, countVal = 0;
   raw.split("\n").forEach(function(line){
     var p = line.split(",");
     var y = +p[0], m = +p[1], avg = +p[2], days = +p[3];
@@ -205,7 +206,9 @@
     yearsSet[y] = true;
     if (avg < minVal) minVal = avg;
     if (avg > maxVal) maxVal = avg;
+    sumVal += avg; countVal++;
   });
+  var meanVal = sumVal / countVal;
   var years = Object.keys(yearsSet).map(Number).sort(function(a,b){return a-b;});
   var yearMin = years[0], yearMax = years[years.length-1];
   var allYears = [];
@@ -213,21 +216,69 @@
 
   function daysInMonth(y,m){ return new Date(y, m, 0).getDate(); }
 
-  var rampStops = ["#cde2fb","#b7d3f6","#9ec5f4","#86b6ef","#6da7ec","#5598e7","#3987e5","#2a78d6","#256abf","#1c5cab","#184f95","#104281","#0d366b"];
   function hexToRgb(h){ h=h.replace("#",""); return [parseInt(h.slice(0,2),16),parseInt(h.slice(2,4),16),parseInt(h.slice(4,6),16)]; }
-  var rampRgb = rampStops.map(hexToRgb);
-  function rampColor(t, reversed){
+  function rgbToHsl(rgb){
+    var r=rgb[0]/255,g=rgb[1]/255,b=rgb[2]/255;
+    var max=Math.max(r,g,b),min=Math.min(r,g,b),h,s,l=(max+min)/2;
+    if (max===min){ h=s=0; }
+    else{
+      var d=max-min;
+      s = l>0.5 ? d/(2-max-min) : d/(max+min);
+      if (max===r) h=(g-b)/d+(g<b?6:0);
+      else if (max===g) h=(b-r)/d+2;
+      else h=(r-g)/d+4;
+      h/=6;
+    }
+    return [h,s,l];
+  }
+  function hslToRgb(h,s,l){
+    var r,g,b;
+    if (s===0){ r=g=b=l; }
+    else{
+      function hue2rgb(p,q,t){
+        if (t<0) t+=1; if (t>1) t-=1;
+        if (t<1/6) return p+(q-p)*6*t;
+        if (t<1/2) return q;
+        if (t<2/3) return p+(q-p)*(2/3-t)*6;
+        return p;
+      }
+      var q = l<0.5 ? l*(1+s) : l+s-l*s;
+      var p = 2*l-q;
+      r=hue2rgb(p,q,h+1/3); g=hue2rgb(p,q,h); b=hue2rgb(p,q,h-1/3);
+    }
+    return [Math.round(r*255),Math.round(g*255),Math.round(b*255)];
+  }
+  function withLightness(hex, targetL){
+    var hsl = rgbToHsl(hexToRgb(hex));
+    return hslToRgb(hsl[0], hsl[1], targetL);
+  }
+  function mixRgb(c0, c1, t){
     t = Math.max(0, Math.min(1, t));
-    if (reversed) t = 1 - t;
-    var n = rampRgb.length;
-    var pos = t*(n-1);
-    var i0 = Math.floor(pos), i1 = Math.min(n-1, i0+1);
-    var f = pos - i0;
-    var c0 = rampRgb[i0], c1 = rampRgb[i1];
-    var r = Math.round(c0[0]+(c1[0]-c0[0])*f);
-    var g = Math.round(c0[1]+(c1[1]-c0[1])*f);
-    var b = Math.round(c0[2]+(c1[2]-c0[2])*f);
+    var r = Math.round(c0[0]+(c1[0]-c0[0])*t);
+    var g = Math.round(c0[1]+(c1[1]-c0[1])*t);
+    var b = Math.round(c0[2]+(c1[2]-c0[2])*t);
     return "rgb("+r+","+g+","+b+")";
+  }
+
+  // Diverging blue (cold) <-> neutral gray <-> red (hot), per palette.md.
+  var poles = {
+    light: { neutral: hexToRgb("#f0efec"), cold: hexToRgb("#0d366b"), hot: withLightness("#e34948", 0.30) },
+    dark:  { neutral: hexToRgb("#383835"), cold: hexToRgb("#3987e5"), hot: hexToRgb("#e66767") }
+  };
+  var legendGrad = {
+    light: "linear-gradient(to right, #0d366b, #f0efec " + "50%, " + "rgb(" + poles.light.hot.join(",") + "))",
+    dark:  "linear-gradient(to right, #3987e5, #383835 50%, #e66767)"
+  };
+
+  function divergingColor(value, dark, meanVal, minVal, maxVal){
+    var p = dark ? poles.dark : poles.light;
+    if (value <= meanVal){
+      var coldness = (meanVal - minVal) > 0 ? (meanVal - value) / (meanVal - minVal) : 0;
+      return mixRgb(p.neutral, p.cold, coldness);
+    } else {
+      var hotness = (maxVal - meanVal) > 0 ? (value - meanVal) / (maxVal - meanVal) : 0;
+      return mixRgb(p.neutral, p.hot, hotness);
+    }
   }
   function isDark(){
     var root = document.documentElement;
@@ -238,6 +289,7 @@
 
   document.getElementById("legendMin").textContent = minVal.toFixed(0);
   document.getElementById("legendMax").textContent = maxVal.toFixed(0);
+  document.getElementById("legendMid").textContent = meanVal.toFixed(0);
 
   var grid = document.getElementById("heatgrid");
   var nCols = allYears.length;
@@ -284,15 +336,16 @@
     });
   }
 
+  var legendBar = document.getElementById("legendBar");
   function paintCells(){
     var dark = isDark();
     for (var mi=0; mi<12; mi++){
       cellRefs[mi].forEach(function(c){
         if (!c.rec) return;
-        var t = (c.rec.avg - minVal) / (maxVal - minVal);
-        c.el.style.background = rampColor(t, dark);
+        c.el.style.background = divergingColor(c.rec.avg, dark, meanVal, minVal, maxVal);
       });
     }
+    legendBar.style.background = dark ? legendGrad.dark : legendGrad.light;
   }
   paintCells();
   if (window.matchMedia){
