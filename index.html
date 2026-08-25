@@ -160,6 +160,30 @@
   .card.selected p,.card:focus-visible p{color:#4B4E58}
   .card.selected .tag,.card:focus-visible .tag,.card.selected .go,.card:focus-visible .go,.card.selected .icon-chip,.card:focus-visible .icon-chip{color:var(--card-color)}
   .card.selected{outline:2px solid var(--card-color);outline-offset:3px}
+
+  /* ---------- Consenso analitico ---------- */
+  .analytics-consent{
+    position:fixed; z-index:100; left:50%; bottom:20px; transform:translateX(-50%);
+    width:min(920px,calc(100% - 32px)); display:flex; align-items:center; justify-content:space-between; gap:20px;
+    padding:15px 16px 15px 18px; background:color-mix(in srgb,var(--surface) 97%,transparent);
+    border:1px solid var(--border); border-radius:14px; box-shadow:var(--shadow-hover); backdrop-filter:blur(14px);
+  }
+  .analytics-consent[hidden]{display:none}
+  .analytics-copy{display:flex; align-items:flex-start; gap:11px; max-width:570px; color:var(--text-2); font-size:12px; line-height:1.5}
+  .analytics-copy strong{color:var(--text);font-weight:700}
+  .analytics-code{padding-top:2px;color:var(--accent);font-size:10px;font-weight:700;letter-spacing:.11em}
+  .analytics-actions{display:flex;flex-wrap:wrap;justify-content:flex-end;gap:8px}
+  .analytics-actions button{min-height:34px;border:1px solid var(--border);border-radius:8px;padding:8px 10px;background:transparent;color:var(--text-2);font:600 10px/1 'Inter',sans-serif;letter-spacing:.055em;text-transform:uppercase;cursor:pointer;transition:transform .18s ease,background .18s ease,color .18s ease}
+  .analytics-actions button:hover{transform:translateY(-2px)}
+  .analytics-actions .accept{border-color:var(--ink);background:var(--ink);color:#fff}
+  .analytics-actions .accept:hover{background:var(--ink-soft)}
+  .analytics-actions .decline:hover{background:var(--text);color:var(--surface)}
+  .analytics-actions button:focus-visible{outline:2px solid var(--accent);outline-offset:3px}
+  @media(max-width:600px){
+    .analytics-consent{align-items:stretch;flex-direction:column;gap:12px;padding:14px}
+    .analytics-actions{justify-content:stretch}
+    .analytics-actions button{flex:1 1 145px}
+  }
 </style>
 </head>
 <body>
@@ -294,6 +318,50 @@
     <span><strong id="visit-count">···</strong> visite</span>
   </div>
 </footer>
+
+<aside id="analytics-consent" class="analytics-consent" aria-label="Scelta per la misurazione analitica" aria-live="polite" hidden>
+  <div class="analytics-copy">
+    <span class="analytics-code">A.01</span>
+    <p><strong>Misurazione dell’osservatorio</strong> — con il tuo consenso, Google Analytics ci aiuta a capire quali progetti vengono consultati. Puoi continuare senza attivarla.</p>
+  </div>
+  <div class="analytics-actions">
+    <button id="analytics-decline" class="decline" type="button">Continua senza analisi</button>
+    <button id="analytics-accept" class="accept" type="button">Accetta analisi</button>
+  </div>
+</aside>
+
+<script>
+(function(){
+  var ID='G-HYZFHRXR5X';
+  var KEY='luca-varlani-analytics-consent';
+  var banner=document.getElementById('analytics-consent');
+  var accept=document.getElementById('analytics-accept');
+  var decline=document.getElementById('analytics-decline');
+
+  function loadAnalytics(){
+    if(window.gtag)return;
+    window.dataLayer=window.dataLayer||[];
+    window.gtag=function(){window.dataLayer.push(arguments);};
+    var script=document.createElement('script');
+    script.async=true;
+    script.src='https://www.googletagmanager.com/gtag/js?id='+ID;
+    document.head.appendChild(script);
+    window.gtag('js',new Date());
+    window.gtag('config',ID);
+  }
+  function choose(choice){
+    try{localStorage.setItem(KEY,choice);}catch(e){}
+    banner.hidden=true;
+    if(choice==='accepted')loadAnalytics();
+  }
+  var saved=null;
+  try{saved=localStorage.getItem(KEY);}catch(e){}
+  if(saved==='accepted')loadAnalytics();
+  else if(saved!=='rejected')banner.hidden=false;
+  accept.addEventListener('click',function(){choose('accepted');});
+  decline.addEventListener('click',function(){choose('rejected');});
+})();
+</script>
 
 <script>
 (function(){
